@@ -1,0 +1,126 @@
+.child-calculator {
+  background: #f5f8fa;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  padding: 40px 0;
+}
+
+.child-calculator .container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  padding: 32px 24px 36px 24px;
+}
+
+.child-calculator .title {
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: #0a2a4d;
+}
+
+.child-calculator .subtitle {
+  text-align: center;
+  color: #555;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.child-calculator .legal-note {
+  background: #eaf3ff;
+  color: #0a2a4d;
+  border-left: 4px solid #007bff;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  font-size: 1rem;
+  border-radius: 6px;
+}
+
+.child-calculator .form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.child-calculator .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.child-calculator label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #222;
+  font-size: 1rem;
+}
+
+.child-calculator select,
+.child-calculator input[type="number"] {
+  padding: 9px 12px;
+  border: 1px solid #bbb;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border 0.2s;
+  outline: none;
+}
+
+.child-calculator input[type="number"]:focus,
+.child-calculator select:focus {
+  border-color: #007bff;
+}
+
+.child-calculator .required {
+  color: #e53935;
+  margin-left: 3px;
+}
+
+/* Button row container */
+.child-calculator .button-row {
+  text-align: center;
+  margin-top: 18px;
+}
+
+/* Submit button styles */
+.child-calculator .submit-btn {
+  background: #007bff;
+  color: #fff;
+  padding: 11px 36px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: inline-block;
+}
+
+.child-calculator .submit-btn:hover {
+  background: #0056b3;
+}
+
+/* Result box */
+.child-calculator .result-box {
+  margin: 26px auto 0 auto;
+  background: #eaf3ff;
+  border: 1px solid #b6d6fa;
+  border-radius: 8px;
+  padding: 20px 18px;
+  font-size: 1.13rem;
+  color: #0a2a4d;
+  text-align: center;
+  font-weight: 500;
+  max-width: 420px;
+}
+
+.child-calculator .result-box strong {
+  color: #007bff;
+  font-size: 1.17em;
+}
+
+@media (max-width: 700px) {
+  .child-calculator .container {
+    padding: 14px 2px 24px 2px;
+  }
+}

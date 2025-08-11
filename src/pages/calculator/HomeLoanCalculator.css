@@ -1,0 +1,130 @@
+.home-loan-calculator {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    padding-bottom: 40px;
+  }
+  
+  .home-loan-calculator .hl-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+  
+  .home-loan-calculator .hl-subtitle {
+    text-align: center;
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 30px;
+  }
+  
+  .home-loan-calculator .hl-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0 40px;
+  }
+  
+  .home-loan-calculator .calculator {
+    display: flex;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    max-width: 700px;
+    width: 100%;
+  }
+  
+  .home-loan-calculator .left-panel {
+    padding: 30px;
+    width: 400px;
+  }
+  
+  .home-loan-calculator .right-panel {
+    background-color: #0d6efd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 30px;
+    width: 250px;
+    text-align: center;
+  }
+  
+  .home-loan-calculator .form-group {
+    margin-bottom: 25px;
+  }
+  
+  .home-loan-calculator label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .home-loan-calculator input[type="range"] {
+    width: 100%;
+  }
+  
+  .home-loan-calculator .value-display {
+    background-color: #e7f1ff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 5px;
+  }
+  
+  .home-loan-calculator button {
+    background-color: #0d6efd;
+    color: white;
+    padding: 12px 25px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+  }
+  
+  .home-loan-calculator button:hover {
+    background-color: #004ec2;
+  }
+  
+  .home-loan-calculator .text-center {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .home-loan-calculator .btn-outline-primary {
+    display: inline-block;
+    color: #0d6efd;
+    padding: 10px 20px;
+    border: 2px solid #0d6efd;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s;
+  }
+  
+  .home-loan-calculator .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: white;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .home-loan-calculator .calculator {
+      flex-direction: column;
+    }
+  
+    .home-loan-calculator .left-panel,
+    .home-loan-calculator .right-panel {
+      width: 100%;
+    }
+  
+    .home-loan-calculator .hl-container {
+      padding: 0 20px;
+    }
+  }
+  

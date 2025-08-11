@@ -1,0 +1,139 @@
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f9fafb;
+}
+
+.contact-section {
+  padding: 3rem 1rem;
+  max-width: 1280px;
+  margin: auto;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+@media(min-width: 1024px) {
+  .container {
+    flex-direction: row;
+  }
+}
+
+.form-sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+}
+
+.form-wrapper {
+  background-color: #ffffff;
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.form-wrapper h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.form-wrapper p {
+  color: #4b5563;
+  margin-bottom: 2rem;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media(min-width: 768px) {
+  .input-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  resize: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: start;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+button {
+  background-color: #4f46e5;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #4338ca;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.sidebar {
+  width: 100%;
+  max-width: 384px;
+  position: sticky;
+  top: 5rem;
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar h4 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+.contact-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.contact-box i {
+  font-size: 1.25rem;
+  background: linear-gradient(to top right, #6366f1, #8b5cf6);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

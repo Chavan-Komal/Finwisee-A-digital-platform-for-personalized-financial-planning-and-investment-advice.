@@ -1,0 +1,46 @@
+/* affiliations.css */
+
+.affiliations-container {
+  background-color: #f8f9fa;
+}
+
+.affiliation-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.affiliation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.affiliation-logo {
+  max-height: 80px;      /* Equal height for all logos */
+  width: auto;
+  object-fit: contain;
+  padding: 10px;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.card-text {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+@media (max-width: 576px) {
+  .affiliation-logo {
+    max-height: 60px;
+  }
+
+  .card-text {
+    font-size: 0.85rem;
+  }
+}

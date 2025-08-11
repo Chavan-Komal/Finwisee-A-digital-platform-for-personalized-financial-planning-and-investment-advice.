@@ -1,0 +1,130 @@
+.vehicle-calculator {
+    background: #f5f8fa;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .vehicle-calculator .container {
+    max-width: 500px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+    padding: 32px 24px 36px 24px;
+  }
+  
+  .vehicle-calculator h1 {
+    text-align: center;
+    font-size: 2.1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    color: #0a2a4d;
+  }
+  
+  .vehicle-calculator .subtitle {
+    text-align: center;
+    color: #555;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .vehicle-calculator form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  
+  .vehicle-calculator .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .vehicle-calculator label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #222;
+    font-size: 1rem;
+  }
+  
+  .vehicle-calculator input[type="number"] {
+    padding: 9px 12px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  
+  .vehicle-calculator input[type="number"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
+  }
+  
+  .vehicle-calculator input[type="number"].error {
+    border-color: #e53935;
+    background-color: #fdecea;
+  }
+  
+  .vehicle-calculator .required {
+    color: #e53935;
+    margin-left: 3px;
+  }
+  
+  .vehicle-calculator .button-row {
+    text-align: center;
+    margin-top: 18px;
+  }
+  
+  .vehicle-calculator button[type="submit"] {
+    background: #007bff;
+    color: #fff;
+    padding: 11px 36px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .vehicle-calculator button[type="submit"]:hover:not(:disabled) {
+    background: #0056b3;
+  }
+  
+  .vehicle-calculator button[type="submit"]:disabled {
+    background: #a1c5f3;
+    cursor: not-allowed;
+  }
+  
+  .vehicle-calculator .result-box {
+    margin: 26px auto 0 auto;
+    background: #eaf3ff;
+    border: 1px solid #b6d6fa;
+    border-radius: 8px;
+    padding: 20px 18px;
+    font-size: 1.13rem;
+    color: #0a2a4d;
+    text-align: center;
+    font-weight: 500;
+    max-width: 420px;
+  }
+  
+  .vehicle-calculator .result-box strong {
+    color: #007bff;
+    font-size: 1.17em;
+  }
+  
+  .vehicle-calculator .error-message {
+    color: #e53935;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+  
+  @media (max-width: 700px) {
+    .vehicle-calculator .container {
+      padding: 14px 12px 24px 12px;
+    }
+  }
+  

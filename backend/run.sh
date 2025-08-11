@@ -1,0 +1,23 @@
+#!/bin/bash
+echo "========================================"
+echo "    FINWISE BACKEND - MySQL Database"
+echo "========================================"
+echo ""
+echo "MySQL Configuration:"
+echo "  Host: localhost:3306"
+echo "  Database: finwise_db (auto-created)"
+echo "  Username: root"
+echo "  Password: password"
+echo ""
+echo "Make sure MySQL server is running!"
+echo ""
+echo "Default Login Credentials:"
+echo "  Admin: admin@finwise.com / admin123"
+echo "  User:  john.doe@example.com / user123"
+echo ""
+echo "Backend will be available at: http://localhost:8080"
+echo "========================================"
+echo ""
+
+echo "Starting application..."
+./mvnw spring-boot:run

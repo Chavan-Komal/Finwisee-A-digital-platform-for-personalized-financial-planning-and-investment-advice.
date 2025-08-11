@@ -1,0 +1,105 @@
+/* File: src/components/CAGRCalculator.css */
+.cagr-calculator-container {
+    font-family: 'Inter', sans-serif;
+    background: #f9f9f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+    min-height: 100vh;
+    text-align: center;
+  }
+  
+  .cagr-calculator-box {
+    display: flex;
+    justify-content: space-between;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-width: 900px;
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  .cagr-input-section {
+    flex: 1;
+    padding: 20px;
+    text-align: left;
+  }
+  
+  .cagr-input-section label {
+    display: block;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  
+  .cagr-input-section input[type="range"] {
+    width: 100%;
+    margin-top: 5px;
+  }
+  
+  .cagr-input-section input[type="number"] {
+    margin-top: 5px;
+    padding: 5px;
+    width: 100px;
+    background: #e7f0ff;
+    border: none;
+    font-weight: bold;
+    text-align: right;
+  }
+  
+  .cagr-input-section button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    background: #175cff;
+    color: white;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .cagr-output-section {
+    background: #175cff;
+    color: white;
+    min-width: 250px;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .cagr-output-section h2 {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+  }
+  
+  #cagrResult {
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+  
+  .cagr-back-link {
+    margin-top: 20px;
+  }
+  
+  .cagr-back-link a {
+    text-decoration: none;
+    color: #175cff;
+    font-weight: bold;
+  }
+  
+  @media (max-width: 768px) {
+    .cagr-calculator-box {
+      flex-direction: column;
+    }
+  
+    .cagr-output-section {
+      width: 100%;
+      min-width: unset;
+    }
+  }
+  
