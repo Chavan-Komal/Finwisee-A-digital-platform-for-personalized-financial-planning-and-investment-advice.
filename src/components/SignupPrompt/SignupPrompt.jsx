@@ -89,8 +89,8 @@ const SignupPrompt = ({ onClose, show = false }) => {
 
           <div className="prompt-footer">
             <p>By signing up, you agree to our{' '}
-              <a href="/terms" target="_blank">Terms of Service</a> and{' '}
-              <a href="/privacy" target="_blank">Privacy Policy</a>
+              Terms of Service and{' '}
+              Privacy Policy
             </p>
           </div>
         </div>

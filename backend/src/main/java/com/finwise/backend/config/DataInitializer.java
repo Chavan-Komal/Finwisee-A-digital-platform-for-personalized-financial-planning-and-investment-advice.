@@ -1,6 +1,14 @@
 package com.finwise.backend.config;
 
+import com.finwise.backend.appointment.Appointment;
+import com.finwise.backend.appointment.AppointmentRepository;
 import com.finwise.backend.category.Category;
+import com.finwise.backend.financialplan.FinancialPlan;
+import com.finwise.backend.financialplan.FinancialPlanRepository;
+import com.finwise.backend.message.Message;
+import com.finwise.backend.message.MessageRepository;
+import com.finwise.backend.userprofile.UserProfile;
+import com.finwise.backend.userprofile.UserProfileRepository;
 import com.finwise.backend.category.CategoryRepository;
 import com.finwise.backend.course.Course;
 import com.finwise.backend.course.CourseRepository;
@@ -20,6 +28,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,6 +54,18 @@ public class DataInitializer implements CommandLineRunner {
     private InvestmentProductRepository investmentProductRepository;
 
     @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @Autowired
+    private MessageRepository messageRepository;
+
+    @Autowired
+    private FinancialPlanRepository financialPlanRepository;
+
+    @Autowired
+    private UserProfileRepository userProfileRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -58,6 +80,7 @@ public class DataInitializer implements CommandLineRunner {
             initializeCourses();
             initializeItems();
             initializeInvestmentProducts();
+            initializeDemoActivity();
             logger.info("Data initialization completed!");
         } else {
             logger.info("Data already exists, skipping initialization.");
@@ -260,6 +283,62 @@ public class DataInitializer implements CommandLineRunner {
             investmentProductRepository.saveAll(products);
             logger.info("Investment products initialized successfully!");
         }
+    }
+
+    /** Sample appointments, messages and goals so the demo user's dashboard isn't empty. */
+    private void initializeDemoActivity() {
+        User admin = userRepository.findByEmail("admin@finwise.com").orElse(null);
+        User john = userRepository.findByEmail("john.doe@example.com").orElse(null);
+        if (admin == null || john == null) return;
+        logger.info("Initializing demo activity...");
+
+        UserProfile profile = new UserProfile();
+        profile.setUser(john);
+        profile.setDateOfBirth(LocalDate.of(1990, 1, 15));
+        profile.setGender("Male");
+        profile.setOccupation("Software Engineer");
+        profile.setAnnualIncome(new BigDecimal("1800000"));
+        profile.setInvestmentExperience(UserProfile.InvestmentExperience.INTERMEDIATE);
+        profile.setRiskTolerance(UserProfile.RiskTolerance.MODERATE);
+        profile.setFinancialGoals("Build a retirement corpus and buy a home in 5 years");
+        profile.setCity("Pune");
+        profile.setState("Maharashtra");
+        profile.setCountry("India");
+        profile.setIsProfileComplete(true);
+        userProfileRepository.save(profile);
+
+        Appointment confirmed = new Appointment(john, LocalDate.now().plusDays(3), LocalTime.of(10, 0), "Financial Planning");
+        confirmed.setStatus(Appointment.AppointmentStatus.CONFIRMED);
+        confirmed.setAdvisorName("Sarah Johnson");
+        Appointment pending = new Appointment(john, LocalDate.now().plusDays(10), LocalTime.of(15, 0), "Investment Review");
+        pending.setNotes("Would like to review my mutual fund SIPs");
+        appointmentRepository.saveAll(List.of(confirmed, pending));
+
+        messageRepository.save(new Message(admin, john, "Welcome to Finwise!",
+                "Hi John, welcome aboard. Complete your profile and book a free consultation with one of our advisors."));
+        messageRepository.save(new Message(john, admin, "Question about tax-saving options",
+                "Hello, could you suggest tax-saving investments under Section 80C for this financial year?"));
+
+        FinancialPlan retirement = new FinancialPlan();
+        retirement.setUser(john);
+        retirement.setTitle("Retirement corpus");
+        retirement.setPlanType(FinancialPlan.PlanType.RETIREMENT);
+        retirement.setTargetAmount(new BigDecimal("50000000"));
+        retirement.setCurrentAmount(new BigDecimal("1250000"));
+        retirement.setMonthlyContribution(new BigDecimal("25000"));
+        retirement.setExpectedReturnRate(new BigDecimal("11"));
+        retirement.setTargetDate(LocalDate.of(2050, 1, 1));
+
+        FinancialPlan emergency = new FinancialPlan();
+        emergency.setUser(john);
+        emergency.setTitle("Emergency fund (6 months)");
+        emergency.setPlanType(FinancialPlan.PlanType.EMERGENCY_FUND);
+        emergency.setTargetAmount(new BigDecimal("600000"));
+        emergency.setCurrentAmount(new BigDecimal("420000"));
+        emergency.setMonthlyContribution(new BigDecimal("15000"));
+        emergency.setExpectedReturnRate(new BigDecimal("6.5"));
+        emergency.setTargetDate(LocalDate.now().plusMonths(12));
+        financialPlanRepository.saveAll(List.of(retirement, emergency));
     }
 
     private Category createCategory(String name, String description, String imageUrl) {

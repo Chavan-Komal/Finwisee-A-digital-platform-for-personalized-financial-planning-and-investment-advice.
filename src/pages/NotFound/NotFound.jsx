@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './NotFound.css';
 
@@ -37,14 +37,20 @@ const NotFound = () => {
         </div>
 
         <div className="error-actions">
-          <button onClick={() => navigate('/auth/login')} className="login-btn">
-            <i className="fas fa-sign-in-alt"></i>
-            Login
+          <button onClick={handleGoHome} className="login-btn">
+            <i className="fas fa-home"></i>
+            {isAuthenticated() ? 'Go to Dashboard' : 'Go to Home'}
           </button>
+          {!isAuthenticated() && (
+            <button onClick={() => navigate('/auth/login')} className="login-btn">
+              <i className="fas fa-sign-in-alt"></i>
+              Login
+            </button>
+          )}
         </div>
 
         <div className="help-section">
-          <p>Need help? <a href="/home/contactus">Contact Support</a></p>
+          <p>Need help? <Link to="/home/contactus">Contact Support</Link></p>
         </div>
       </div>
     </div>

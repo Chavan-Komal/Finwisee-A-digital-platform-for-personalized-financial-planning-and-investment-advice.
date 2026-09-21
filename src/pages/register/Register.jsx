@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { api } from '../../api/client';
 import './Register.css';
-
-const API_URL = 'http://localhost:8080';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,15 +18,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const { login, user } = useAuth();
-
-  // Navigate after successful registration when user is available
-  useEffect(() => {
-    if (user && success) {
-      console.log('User authenticated after registration, navigating to dashboard:', user);
-      navigate('/user');
-    }
-  }, [user, success, navigate]);
+  const { login } = useAuth();
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -68,64 +59,19 @@ const Register = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-
     try {
-      console.log('Registration attempt with:', {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
+      const data = await api.post('/auth/register', {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         password: formData.password,
       });
-      
-      const res = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-        })
-      });
-      
-      console.log('Registration response status:', res.status);
-      
-      if (res.status === 409) {
-        setErrors({ general: 'Email already in use' });
-        return;
-      }
-      if (!res.ok) {
-        const txt = await res.text();
-        console.error('Registration failed with status:', res.status, 'response:', txt);
-        throw new Error(txt || 'Registration failed');
-      }
-      const data = await res.json();
-      
-      console.log('Registration successful, received data:', data);
-
-      const userData = {
-        id: data.id,
-        email: data.email,
-        role: data.role,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-      };
-      
-      console.log('Calling login with userData:', userData, 'token:', data.token);
-      
-      // Call login to update the auth state
-      login({ user: userData, token: data.token });
-      
-      // Set success state to trigger navigation
+      const { token, ...userData } = data;
+      login({ user: userData, token });
       setSuccess(true);
-      
-      console.log('Registration completed, success states set');
-
+      setTimeout(() => navigate('/user', { replace: true }), 1200);
     } catch (err) {
-      console.error('Registration error:', err);
       setErrors({ general: err.message || 'Registration failed. Please try again.' });
     } finally {
       setIsLoading(false);
@@ -285,7 +231,7 @@ const Register = () => {
                 className="checkbox-input"
               />
               <span className="checkbox-custom"></span>
-              I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>
+              I agree to the Terms of Service and Privacy Policy
             </label>
             {errors.agreeTerms && <span className="error-text">{errors.agreeTerms}</span>}
           </div>
@@ -310,16 +256,7 @@ const Register = () => {
         </form>
 
         <div className="register-footer">
-          <p>Already have an account? <a href="/auth/login">Sign in here</a></p>
-        </div>
-        
-        {/* Debug section - remove in production */}
-        <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f0f0f0', fontSize: '12px' }}>
-          <h4>Debug Info:</h4>
-          <p>Current user: {JSON.stringify(user)}</p>
-          <p>Registration success: {success ? 'true' : 'false'}</p>
-          <p>localStorage userInfo: {localStorage.getItem('userInfo')}</p>
-          <p>localStorage token: {localStorage.getItem('token')}</p>
+          <p>Already have an account? <Link to="/auth/login">Sign in here</Link></p>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 package com.finwise.backend.document;
 
 import com.finwise.backend.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -24,6 +25,7 @@ public class Document {
     @Column(name = "file_type")
     private String fileType;
 
+    @JsonIgnore
     @Column(name = "file_path")
     private String filePath;
 

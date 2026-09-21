@@ -1,99 +1,100 @@
 package com.finwise.backend.appointment;
 
+import com.finwise.backend.security.CurrentUserService;
 import com.finwise.backend.user.User;
-import com.finwise.backend.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
-import java.security.Principal;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/appointments")
-@CrossOrigin(origins = "*")
 public class AppointmentController {
 
-    @Autowired
-    private AppointmentRepository appointmentRepository;
+    public record AppointmentRequest(
+            @NotNull LocalDate appointmentDate,
+            @NotNull LocalTime appointmentTime,
+            @NotBlank String appointmentType,
+            String notes) {}
 
-    @Autowired
-    private UserRepository userRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final CurrentUserService currentUserService;
+
+    public AppointmentController(AppointmentRepository appointmentRepository, CurrentUserService currentUserService) {
+        this.appointmentRepository = appointmentRepository;
+        this.currentUserService = currentUserService;
+    }
 
     @GetMapping("/my-appointments")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<Appointment>> getMyAppointments(Principal principal) {
-        User user = userRepository.findByEmail(principal.getName()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-        List<Appointment> appointments = appointmentRepository.findByUserIdOrderByAppointmentDateDesc(user.getId());
-        return ResponseEntity.ok(appointments);
-    }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @appointmentRepository.findById(#id).orElse(null)?.user?.email == principal.name")
-    public ResponseEntity<Appointment> getAppointmentById(@PathVariable Long id) {
-        return appointmentRepository.findById(id)
-                .map(appointment -> ResponseEntity.ok().body(appointment))
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Appointment> createAppointment(@Valid @RequestBody Appointment appointment, Principal principal) {
-        User user = userRepository.findByEmail(principal.getName()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        appointment.setUser(user);
-        Appointment savedAppointment = appointmentRepository.save(appointment);
-        return ResponseEntity.ok(savedAppointment);
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @appointmentRepository.findById(#id).orElse(null)?.user?.email == principal.name")
-    public ResponseEntity<Appointment> updateAppointment(@PathVariable Long id, @Valid @RequestBody Appointment appointmentDetails) {
-        return appointmentRepository.findById(id)
-                .map(appointment -> {
-                    appointment.setAppointmentDate(appointmentDetails.getAppointmentDate());
-                    appointment.setAppointmentTime(appointmentDetails.getAppointmentTime());
-                    appointment.setAppointmentType(appointmentDetails.getAppointmentType());
-                    appointment.setStatus(appointmentDetails.getStatus());
-                    appointment.setAdvisorName(appointmentDetails.getAdvisorName());
-                    appointment.setNotes(appointmentDetails.getNotes());
-                    return ResponseEntity.ok(appointmentRepository.save(appointment));
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @appointmentRepository.findById(#id).orElse(null)?.user?.email == principal.name")
-    public ResponseEntity<?> deleteAppointment(@PathVariable Long id) {
-        return appointmentRepository.findById(id)
-                .map(appointment -> {
-                    appointmentRepository.delete(appointment);
-                    return ResponseEntity.ok().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Appointment> updateAppointmentStatus(@PathVariable Long id, @RequestParam Appointment.AppointmentStatus status) {
-        return appointmentRepository.findById(id)
-                .map(appointment -> {
-                    appointment.setStatus(status);
-                    return ResponseEntity.ok(appointmentRepository.save(appointment));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public List<Appointment> getMyAppointments(Authentication auth) {
+        User user = currentUserService.require(auth);
+        return appointmentRepository.findByUserIdOrderByAppointmentDateDescAppointmentTimeDesc(user.getId());
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Appointment>> getAllAppointments() {
-        List<Appointment> appointments = appointmentRepository.findAll();
-        return ResponseEntity.ok(appointments);
+    public List<Appointment> getAllAppointments() {
+        return appointmentRepository.findAllByOrderByAppointmentDateDescAppointmentTimeDesc();
+    }
+
+    @GetMapping("/{id}")
+    public Appointment getAppointmentById(@PathVariable Long id, Authentication auth) {
+        Appointment appointment = find(id);
+        CurrentUserService.requireOwnerOrAdmin(currentUserService.require(auth), appointment.getUser());
+        return appointment;
+    }
+
+    @PostMapping
+    public ResponseEntity<Appointment> createAppointment(@Valid @RequestBody AppointmentRequest request, Authentication auth) {
+        User user = currentUserService.require(auth);
+        if (request.appointmentDate().isBefore(LocalDate.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment date cannot be in the past");
+        }
+        Appointment appointment = new Appointment(user, request.appointmentDate(), request.appointmentTime(), request.appointmentType());
+        appointment.setNotes(request.notes());
+        return ResponseEntity.status(HttpStatus.CREATED).body(appointmentRepository.save(appointment));
+    }
+
+    /** Users can cancel their own appointments; admins can cancel any. */
+    @PutMapping("/{id}/cancel")
+    public Appointment cancelAppointment(@PathVariable Long id, Authentication auth) {
+        Appointment appointment = find(id);
+        CurrentUserService.requireOwnerOrAdmin(currentUserService.require(auth), appointment.getUser());
+        appointment.setStatus(Appointment.AppointmentStatus.CANCELLED);
+        return appointmentRepository.save(appointment);
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Appointment updateAppointmentStatus(@PathVariable Long id,
+                                               @RequestParam Appointment.AppointmentStatus status,
+                                               @RequestParam(required = false) String advisorName) {
+        Appointment appointment = find(id);
+        appointment.setStatus(status);
+        if (advisorName != null && !advisorName.isBlank()) {
+            appointment.setAdvisorName(advisorName.trim());
+        }
+        return appointmentRepository.save(appointment);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAppointment(@PathVariable Long id, Authentication auth) {
+        Appointment appointment = find(id);
+        CurrentUserService.requireOwnerOrAdmin(currentUserService.require(auth), appointment.getUser());
+        appointmentRepository.delete(appointment);
+        return ResponseEntity.noContent().build();
+    }
+
+    private Appointment find(Long id) {
+        return appointmentRepository.findById(id).orElseThrow(() -> CurrentUserService.notFound("Appointment"));
     }
 }

@@ -1,135 +1,92 @@
 # Finwisee - Financial Planning Platform
 
-A comprehensive financial planning platform with user and admin dashboards, featuring modern UI/UX design and full functionality.
+A full-stack financial planning platform: a React (Vite) website with client and admin dashboards,
+backed by a Spring Boot + JWT REST API and MySQL.
 
 ## Features
 
-### Landing Page
-- Modern, clean design with professional color scheme
-- Hero section with compelling call-to-action
-- Features showcase with icons and descriptions
-- Services preview section
-- Responsive design for all devices
+### Public website
+- Landing page, e-learning, gallery, about, contact, FAQ
+- 12+ financial calculators (SIP, lumpsum, retirement, home/vehicle loan EMI, CAGR, net worth, ...)
+- Plans & pricing with a cart and (simulated) checkout that creates real orders
 
-### Authentication System
-- **Login Page**: Modern design with role-based authentication
-- **Registration Page**: Complete user registration with form validation
-- **Demo Credentials**:
-  - **Admin**: admin@finwisee.com / admin123
-  - **User**: user@finwisee.com / user123
+### Client dashboard (`/user`)
+- **Overview** – upcoming appointments, unread messages, goal progress, quick actions
+- **Profile** – personal and financial profile (income, risk tolerance, experience, goals) with completeness tracking
+- **Goals** – create financial goals; see progress and a projected completion date based on monthly savings and expected return
+- **Appointments** – book consultations, see advisor assignment/status, cancel
+- **Messages** – inbox/sent, write to advisors, reply
+- **Documents** – drag-and-drop upload (stored on the server), download, delete, see review status and advisor notes
+- **Purchases** – order history
 
-### Admin Dashboard
-- **User Management**: Add/remove users, view user details
-- **Appointment Management**: Schedule and manage appointments
-- **Messaging System**: Send messages to users
-- **Document Management**: Review uploaded documents
-- **Overview**: Statistics and recent activity
+### Admin dashboard (`/admin`)
+- **Overview** – clients, revenue, appointments to confirm, documents to review
+- **Users** – search/filter, create, edit, change role, delete (with all related data)
+- **Appointments** – confirm/complete/cancel and assign advisors
+- **Messages** – received/sent/all, reply to clients, compose new messages
+- **Documents** – download, approve/reject with notes
+- **Orders** – all orders, update status
 
-### User Dashboard
-- **Profile Management**: View and edit personal information
-- **Appointment Booking**: Schedule appointments with advisors
-- **Messaging**: Send messages to admin
-- **Document Upload**: Drag-and-drop file upload with multiple format support
-- **Overview**: Quick actions and statistics
+## Technology stack
+- **Frontend**: React 19, React Router 6, Vite 6, Bootstrap 5, Font Awesome
+- **Backend**: Spring Boot 3.3, Spring Security with JWT, Spring Data JPA/Hibernate
+- **Database**: MySQL 8 (or embedded H2 for quick local runs)
 
-## Technology Stack
+## Getting started
 
-- **Frontend**: React 19.1.0
-- **Build Tool**: Vite 6.3.5
-- **Routing**: React Router DOM
-- **Styling**: Custom CSS with modern design patterns
-- **Icons**: Font Awesome & Bootstrap Icons
-- **UI Framework**: Tailwind CSS (dev dependency)
-
-## Getting Started
-
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
-
-2. **Start Development Server**:
-   ```bash
-   npm run dev
-   ```
-
-3. **Access the Application**:
-   - Open `http://localhost:5173` in your browser
-   - Navigate to `/main/login` to access the login page
-   - Use the demo credentials to test different roles
-
-## Project Structure
-
+### 1. Backend (port 8080)
+```bash
+cd backend
+set DB_PASSWORD=your_mysql_password
+mvnw.cmd spring-boot:run
 ```
+No MySQL? Use the embedded database instead: `mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=h2`
+(or double-click `backend/run-h2.bat`). See [backend/README.md](backend/README.md) for all options.
+
+### 2. Frontend (port 5173)
+```bash
+npm install
+npm run dev
+```
+Open http://localhost:5173. The dev server proxies `/api` to the backend.
+If the backend runs on another port: `set BACKEND_URL=http://localhost:8081` before `npm run dev`.
+
+For a production build hosted separately from the API, set `VITE_API_URL` (e.g. `https://api.example.com`)
+before `npm run build`, and add the site's origin to the backend's `CORS_ORIGINS`.
+
+## Demo credentials
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@finwise.com | admin123 |
+| User | john.doe@example.com | user123 |
+
+The login page also has one-click buttons to fill these in.
+
+## Project structure
+```
+backend/                       Spring Boot API (see backend/README.md)
 src/
+├── api/client.js              fetch wrapper (JWT header, JSON errors, uploads/downloads)
 ├── components/
-│   ├── Header/          # Navigation header
-│   ├── Hero/           # Landing page hero section
-│   └── Footer/         # Footer component
+│   ├── Dashboard/             shared dashboard layout, modal, badges (Dashboard.css)
+│   ├── Header/ Footer/ Hero/  website chrome
+│   └── ProtectedRoute/        role-based route guard
+├── context/                   AuthContext (session), CartContext
+├── hooks/useNotice.js         toast notifications
 ├── pages/
-│   ├── admin/          # Admin dashboard
-│   ├── user/           # User dashboard
-│   ├── login/          # Authentication pages
-│   ├── register/       # User registration
-│   └── ...             # Other pages
-├── layout/
-│   └── MainLayout.jsx  # Main layout wrapper
-└── App.jsx             # Main application component
+│   ├── admin/                 AdminDashboard + tabs/
+│   ├── user/                  UserDashboard + tabs/
+│   ├── calculator/ cart/ pricing/ login/ register/ ...
+├── utils/format.js            currency/date formatting helpers
+└── App.jsx                    routes
 ```
 
-## Key Features
+## Scripts
+- `npm run dev` – start the frontend dev server
+- `npm run build` – production build to `dist/`
+- `npm run lint` – ESLint
+- `npm run backend` – start the backend with Maven
 
-### Authentication & Authorization
-- Role-based access control (Admin/User)
-- Session management with localStorage
-- Protected routes for dashboards
-
-### Admin Capabilities
-- **User Management**: Add, remove, and view users
-- **Appointment Scheduling**: Create appointments for users
-- **Messaging**: Send messages to individual users
-- **Document Review**: Mark documents as reviewed
-
-### User Capabilities
-- **Profile Management**: Complete profile with financial information
-- **Appointment Booking**: Schedule appointments with different types
-- **Messaging**: Send messages to admin
-- **Document Upload**: Drag-and-drop interface supporting multiple formats
-
-### UI/UX Features
-- **Responsive Design**: Works on all screen sizes
-- **Modern Design**: Clean, professional interface
-- **Interactive Elements**: Hover effects, animations, and transitions
-- **Accessibility**: Proper contrast and keyboard navigation
-
-## Demo Credentials
-
-### Admin Access
-- **Email**: admin@finwisee.com
-- **Password**: admin123
-- **Features**: Full administrative access
-
-### User Access
-- **Email**: user@finwisee.com
-- **Password**: user123
-- **Features**: User dashboard access
-
-## Development Notes
-
-- All data is stored in localStorage for demo purposes
-- File uploads are simulated (no actual file storage)
-- Authentication is client-side for demonstration
-- Responsive design tested on multiple screen sizes
-
-## Future Enhancements
-
-- Backend integration with real database
-- File upload to cloud storage
-- Real-time messaging system
-- Advanced analytics and reporting
-- Multi-language support
-- Advanced security features
-
-## License
-
-This project is for demonstration purposes.
+## Notes
+- Payments are simulated – checkout records a paid order but no money is charged.
+- Uploaded documents are stored in `backend/uploads/` (max 10 MB per file).

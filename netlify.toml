@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Forward API calls to the Spring Boot backend on Render (same-origin for the browser, so no CORS).
+[[redirects]]
+  from = "/api/*"
+  to = "https://finwisee-backend.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# Single-page app: let React Router handle every other path
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

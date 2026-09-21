@@ -1,87 +1,90 @@
 package com.finwise.backend.course;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.finwise.backend.security.CurrentUserService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/courses")
-@CrossOrigin(origins = "*")
 public class CourseController {
 
-    @Autowired
-    private CourseRepository courseRepository;
+    private final CourseRepository courseRepository;
+
+    public CourseController(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
 
     @GetMapping
-    public ResponseEntity<List<Course>> getAllCourses() {
-        List<Course> courses = courseRepository.findAllPublishedOrderByCreatedAtDesc();
-        return ResponseEntity.ok(courses);
+    public List<Course> getAllCourses() {
+        return courseRepository.findAllPublishedOrderByCreatedAtDesc();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Course> getCourseById(@PathVariable Long id) {
-        return courseRepository.findById(id)
-                .map(course -> ResponseEntity.ok().body(course))
-                .orElse(ResponseEntity.notFound().build());
+    public Course getCourseById(@PathVariable Long id) {
+        return find(id);
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Course>> getCoursesByCategory(@PathVariable Long categoryId) {
-        List<Course> courses = courseRepository.findPublishedCoursesByCategory(categoryId);
-        return ResponseEntity.ok(courses);
+    public List<Course> getCoursesByCategory(@PathVariable Long categoryId) {
+        return courseRepository.findPublishedCoursesByCategory(categoryId);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Course>> searchCourses(@RequestParam String title) {
-        List<Course> courses = courseRepository.findByTitleContainingIgnoreCaseAndIsPublishedTrue(title);
-        return ResponseEntity.ok(courses);
+    public List<Course> searchCourses(@RequestParam String title) {
+        return courseRepository.searchPublishedByTitle(title);
     }
 
     @GetMapping("/difficulty/{level}")
-    public ResponseEntity<List<Course>> getCoursesByDifficulty(@PathVariable Course.DifficultyLevel level) {
-        List<Course> courses = courseRepository.findByDifficultyLevel(level);
-        return ResponseEntity.ok(courses);
+    public List<Course> getCoursesByDifficulty(@PathVariable Course.DifficultyLevel level) {
+        return courseRepository.findByDifficultyLevel(level);
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Course> createCourse(@Valid @RequestBody Course course) {
-        Course savedCourse = courseRepository.save(course);
-        return ResponseEntity.ok(savedCourse);
+        course.setId(null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(courseRepository.save(course));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('INSTRUCTOR') and @courseRepository.findById(#id).orElse(null)?.instructor?.id == principal.id)")
-    public ResponseEntity<Course> updateCourse(@PathVariable Long id, @Valid @RequestBody Course courseDetails) {
-        return courseRepository.findById(id)
-                .map(course -> {
-                    course.setTitle(courseDetails.getTitle());
-                    course.setDescription(courseDetails.getDescription());
-                    course.setShortDescription(courseDetails.getShortDescription());
-                    course.setPrice(courseDetails.getPrice());
-                    course.setDiscountPrice(courseDetails.getDiscountPrice());
-                    course.setImageUrl(courseDetails.getImageUrl());
-                    course.setVideoUrl(courseDetails.getVideoUrl());
-                    course.setDurationHours(courseDetails.getDurationHours());
-                    course.setDifficultyLevel(courseDetails.getDifficultyLevel());
-                    course.setIsPublished(courseDetails.getIsPublished());
-                    course.setCategory(courseDetails.getCategory());
-                    return ResponseEntity.ok(courseRepository.save(course));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    @PreAuthorize("hasRole('ADMIN')")
+    public Course updateCourse(@PathVariable Long id, @Valid @RequestBody Course details) {
+        Course course = find(id);
+        course.setTitle(details.getTitle());
+        course.setDescription(details.getDescription());
+        course.setShortDescription(details.getShortDescription());
+        course.setPrice(details.getPrice());
+        course.setDiscountPrice(details.getDiscountPrice());
+        course.setImageUrl(details.getImageUrl());
+        course.setVideoUrl(details.getVideoUrl());
+        course.setDurationHours(details.getDurationHours());
+        course.setDifficultyLevel(details.getDifficultyLevel());
+        course.setIsPublished(details.getIsPublished());
+        course.setCategory(details.getCategory());
+        return courseRepository.save(course);
+    }
+
+    @PutMapping("/{id}/publish")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Course setPublished(@PathVariable Long id, @RequestParam boolean published) {
+        Course course = find(id);
+        course.setIsPublished(published);
+        return courseRepository.save(course);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
-        return courseRepository.findById(id)
-                .map(course -> {
-                    courseRepository.delete(course);
-                    return ResponseEntity.ok().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
+        courseRepository.delete(find(id));
+        return ResponseEntity.noContent().build();
+    }
+
+    private Course find(Long id) {
+        return courseRepository.findById(id).orElseThrow(() -> CurrentUserService.notFound("Course"));
     }
 }

@@ -71,7 +71,7 @@ const Calculator = () => {
 
         {/* Additional Calculators */}
         <div className="row mt-4">
-          {calculatorRoutes.map(({ icon, title, description, path, color }, idx) => (
+          {calculatorRoutes.map(({ icon, title, description, path }, idx) => (
             <div className="col-lg-3 col-md-6 col-12" key={idx}>
               <div className="tool-card fade-in">
                 <div className="tool-icon">

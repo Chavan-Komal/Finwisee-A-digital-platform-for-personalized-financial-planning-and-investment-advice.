@@ -2,6 +2,7 @@ package com.finwise.backend.item;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.finwise.backend.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "items")
 public class Item {
     @Id

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useCart } from '../../context/CartContext';
-import { useNavigate } from 'react-router-dom';
+import { dashboardPathFor, useAuth } from '../../context/AuthContext';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { api } from '../../api/client';
 import './Cart.css';
 
 const Cart = () => {
@@ -8,33 +10,34 @@ const Cart = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const [checkoutError, setCheckoutError] = useState('');
+  const [completedOrder, setCompletedOrder] = useState(null);
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
 
   const handleCheckout = async () => {
     if (items.length === 0) {
       alert('Your cart is empty!');
       return;
     }
+    if (!isAuthenticated()) {
+      navigate('/auth/login', { state: { from: location.pathname } });
+      return;
+    }
 
     setIsProcessing(true);
-    
+    setCheckoutError('');
     try {
-      // Here you would integrate with your backend to create a Stripe payment intent
-      // For now, we'll simulate the payment process
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // In a real implementation, you would:
-      // 1. Call your backend to create a payment intent
-      // 2. Redirect to Stripe Checkout or handle payment with Stripe Elements
-      // 3. Process the payment result
-      
-      alert('Payment processed successfully! (This is a demo)');
+      // Demo checkout: no real payment is taken, the order is recorded as paid
+      const order = await api.post('/orders/checkout', {
+        paymentMethod,
+        items: items.map(({ title, price, originalPrice }) => ({ title, price, originalPrice })),
+      });
       clearCart();
-      navigate('/home');
+      setCompletedOrder(order);
+      window.scrollTo({ top: 0 });
     } catch (error) {
-      console.error('Payment error:', error);
-      alert('Payment failed. Please try again.');
+      setCheckoutError(error.message || 'Payment failed. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -43,6 +46,27 @@ const Cart = () => {
   const handleContinueShopping = () => {
     navigate('/home/pricing');
   };
+
+  if (completedOrder) {
+    return (
+      <div className="cart-empty">
+        <div className="empty-container">
+          <div className="empty-icon text-success">
+            <i className="fas fa-check-circle"></i>
+          </div>
+          <h2>Order placed!</h2>
+          <p>
+            Order <strong>{completedOrder.orderNumber}</strong> for ₹{Number(completedOrder.finalAmount).toLocaleString('en-IN')} is confirmed.
+            An advisor will reach out to you shortly.
+          </p>
+          <button className="btn-continue-shopping" onClick={() => navigate(dashboardPathFor(user))}>
+            <i className="fas fa-th-large"></i>
+            Go to my dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -184,6 +208,15 @@ const Cart = () => {
               </div>
             </div>
 
+            {checkoutError && (
+              <div className="alert alert-danger py-2" role="alert">{checkoutError}</div>
+            )}
+            {!isAuthenticated() && (
+              <p className="text-muted small mb-2">
+                <i className="fas fa-info-circle me-1"></i>You'll be asked to log in before paying.
+              </p>
+            )}
+
             <div className="checkout-actions">
               <button 
                 className="btn-continue-shopping secondary"
@@ -206,7 +239,7 @@ const Cart = () => {
                 ) : (
                   <>
                     <i className="fas fa-credit-card"></i>
-                    Proceed to Payment
+                    {isAuthenticated() ? 'Pay & Place Order' : 'Log in to Checkout'}
                   </>
                 )}
               </button>

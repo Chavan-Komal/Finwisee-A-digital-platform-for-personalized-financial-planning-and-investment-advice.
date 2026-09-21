@@ -45,7 +45,6 @@ const AfterRetirement = () => {
     }
 
     let expenseAtRetirement = annualExpense * Math.pow(1 + inflation / 100, years);
-    const realRate = ((1 + expectedReturn / 100) / (1 + inflation / 100)) - 1;
 
     let totalCorpusNeeded = 0;
     let expense = expenseAtRetirement;

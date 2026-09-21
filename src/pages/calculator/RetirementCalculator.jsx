@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './Calculator.css';
@@ -9,12 +10,39 @@ const formatCurrency = (amount) => {
   } else if (amount >= 100000) {
     return '₹' + (amount / 100000).toFixed(2) + ' L';
   } else {
-    return '₹' + amount.toLocaleString('en-IN');
+    return '₹' + Math.round(amount).toLocaleString('en-IN');
   }
 };
 
 const formatNumber = (num) => {
   return num.toLocaleString('en-IN');
+};
+
+const computeRetirement = ({ currentAge, retirementAge, monthlyInvestment, expectedReturn, currentSavings, inflationRate }) => {
+  const yearsToRetire = retirementAge - currentAge;
+  if (!(yearsToRetire > 0)) return null;
+
+  const totalMonths = yearsToRetire * 12;
+  const monthlyReturn = expectedReturn / 100 / 12;
+  const sipFutureValue = monthlyReturn === 0
+    ? monthlyInvestment * totalMonths
+    : monthlyInvestment * (((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn) * (1 + monthlyReturn));
+  const savingsGrowth = currentSavings * Math.pow(1 + expectedReturn / 100, yearsToRetire);
+  const totalCorpus = sipFutureValue + savingsGrowth;
+  const totalInvestment = monthlyInvestment * totalMonths;
+
+  return {
+    yearsToRetire,
+    totalCorpus,
+    totalInvestment,
+    savingsGrowth,
+    totalReturns: totalCorpus - totalInvestment - currentSavings,
+    // What the corpus is worth in today's money after inflation
+    inflationAdjustedCorpus: totalCorpus / Math.pow(1 + inflationRate / 100, yearsToRetire),
+    sipAmount: monthlyInvestment,
+    sipYears: yearsToRetire,
+    projectedCorpus: Math.round(totalCorpus / 100000)
+  };
 };
 
 const RetirementCalculator = () => {
@@ -27,49 +55,18 @@ const RetirementCalculator = () => {
     inflationRate: 6
   });
 
-  const [results, setResults] = useState(null);
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: parseFloat(e.target.value) });
+    const value = parseFloat(e.target.value);
+    setFormData({ ...formData, [e.target.id]: Number.isNaN(value) ? 0 : value });
   };
+
+  const results = useMemo(() => computeRetirement(formData), [formData]);
 
   const calculateRetirement = () => {
-    const { currentAge, retirementAge, monthlyInvestment, expectedReturn, currentSavings, inflationRate } = formData;
-
-    if (retirementAge <= currentAge) {
+    if (formData.retirementAge <= formData.currentAge) {
       alert('Retirement age must be greater than current age');
-      return;
     }
-
-    const yearsToRetire = retirementAge - currentAge;
-    const totalMonths = yearsToRetire * 12;
-    const monthlyReturn = expectedReturn / 100 / 12;
-
-    const sipFutureValue = monthlyInvestment * (((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn) * (1 + monthlyReturn));
-    const savingsGrowth = currentSavings * Math.pow(1 + expectedReturn / 100, yearsToRetire);
-    const totalCorpus = sipFutureValue + savingsGrowth;
-    const totalInvestment = monthlyInvestment * totalMonths;
-    const totalReturns = totalCorpus - totalInvestment - currentSavings;
-
-    setResults({
-      yearsToRetire,
-      totalCorpus,
-      totalInvestment,
-      savingsGrowth,
-      totalReturns,
-      sipAmount: monthlyInvestment,
-      sipYears: yearsToRetire,
-      projectedCorpus: Math.round(totalCorpus / 100000)
-    });
   };
-
-  useEffect(() => {
-    calculateRetirement();
-  }, []);
-
-  useEffect(() => {
-    if (results) calculateRetirement();
-  }, [formData]);
 
   return (
     <section className="tools-section">
@@ -141,6 +138,10 @@ const RetirementCalculator = () => {
                           <span>Returns Generated:</span>
                           <span className="fw-semibold text-success">{formatCurrency(results.totalReturns)}</span>
                         </div>
+                        <div className="d-flex justify-content-between mb-2">
+                          <span>Worth in today's money ({formData.inflationRate}% inflation):</span>
+                          <span className="fw-semibold">{formatCurrency(results.inflationAdjustedCorpus)}</span>
+                        </div>
                         <hr />
                         <div className="d-flex justify-content-between">
                           <span className="fw-bold">Total Corpus:</span>
@@ -157,9 +158,9 @@ const RetirementCalculator = () => {
                 )}
 
                 <div className="text-center mt-4">
-                  <a href="/calculator" className="btn btn-outline-primary">
+                  <Link to="/home/calculator" className="btn btn-outline-primary">
                     <i className="bi bi-arrow-left me-2"></i>Back to All Calculators
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

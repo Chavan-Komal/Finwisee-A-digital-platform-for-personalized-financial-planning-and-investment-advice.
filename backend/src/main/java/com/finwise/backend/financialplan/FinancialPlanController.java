@@ -1,117 +1,93 @@
 package com.finwise.backend.financialplan;
 
+import com.finwise.backend.security.CurrentUserService;
 import com.finwise.backend.user.User;
-import com.finwise.backend.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
-import java.security.Principal;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/financial-plans")
-@CrossOrigin(origins = "*")
 public class FinancialPlanController {
 
-    @Autowired
-    private FinancialPlanRepository financialPlanRepository;
+    private final FinancialPlanRepository financialPlanRepository;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private UserRepository userRepository;
+    public FinancialPlanController(FinancialPlanRepository financialPlanRepository, CurrentUserService currentUserService) {
+        this.financialPlanRepository = financialPlanRepository;
+        this.currentUserService = currentUserService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<FinancialPlan>> getAllFinancialPlans() {
-        List<FinancialPlan> plans = financialPlanRepository.findAll();
-        return ResponseEntity.ok(plans);
+    public List<FinancialPlan> getAllFinancialPlans() {
+        return financialPlanRepository.findAllByOrderByCreatedAtDesc();
     }
 
     @GetMapping("/my-plans")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<FinancialPlan>> getMyFinancialPlans(Principal principal) {
-        User user = userRepository.findByEmail(principal.getName()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-        List<FinancialPlan> plans = financialPlanRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
-        return ResponseEntity.ok(plans);
+    public List<FinancialPlan> getMyFinancialPlans(Authentication auth) {
+        User user = currentUserService.require(auth);
+        return financialPlanRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @financialPlanRepository.findById(#id).orElse(null)?.user?.email == principal.name")
-    public ResponseEntity<FinancialPlan> getFinancialPlanById(@PathVariable Long id) {
-        return financialPlanRepository.findById(id)
-                .map(plan -> ResponseEntity.ok().body(plan))
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/type/{type}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<FinancialPlan>> getPlansByType(@PathVariable FinancialPlan.PlanType type, Principal principal) {
-        User user = userRepository.findByEmail(principal.getName()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-        List<FinancialPlan> plans = financialPlanRepository.findByPlanType(type);
-        // Filter by user if not admin
-        if (!user.getRole().name().equals("ADMIN")) {
-            plans = plans.stream().filter(plan -> plan.getUser().getId().equals(user.getId())).toList();
-        }
-        return ResponseEntity.ok(plans);
+    public FinancialPlan getFinancialPlanById(@PathVariable Long id, Authentication auth) {
+        FinancialPlan plan = find(id);
+        CurrentUserService.requireOwnerOrAdmin(currentUserService.require(auth), plan.getUser());
+        return plan;
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<FinancialPlan> createFinancialPlan(@Valid @RequestBody FinancialPlan plan, Principal principal) {
-        User user = userRepository.findByEmail(principal.getName()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<FinancialPlan> createFinancialPlan(@Valid @RequestBody FinancialPlan plan, Authentication auth) {
+        User user = currentUserService.require(auth);
+        plan.setId(null);
         plan.setUser(user);
-        FinancialPlan savedPlan = financialPlanRepository.save(plan);
-        return ResponseEntity.ok(savedPlan);
+        applyDefaults(plan);
+        return ResponseEntity.status(HttpStatus.CREATED).body(financialPlanRepository.save(plan));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @financialPlanRepository.findById(#id).orElse(null)?.user?.email == principal.name")
-    public ResponseEntity<FinancialPlan> updateFinancialPlan(@PathVariable Long id, @Valid @RequestBody FinancialPlan planDetails) {
-        return financialPlanRepository.findById(id)
-                .map(plan -> {
-                    plan.setTitle(planDetails.getTitle());
-                    plan.setDescription(planDetails.getDescription());
-                    plan.setPlanType(planDetails.getPlanType());
-                    plan.setTargetAmount(planDetails.getTargetAmount());
-                    plan.setCurrentAmount(planDetails.getCurrentAmount());
-                    plan.setMonthlyContribution(planDetails.getMonthlyContribution());
-                    plan.setTargetDate(planDetails.getTargetDate());
-                    plan.setExpectedReturnRate(planDetails.getExpectedReturnRate());
-                    plan.setStatus(planDetails.getStatus());
-                    return ResponseEntity.ok(financialPlanRepository.save(plan));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public FinancialPlan updateFinancialPlan(@PathVariable Long id, @Valid @RequestBody FinancialPlan details, Authentication auth) {
+        FinancialPlan plan = find(id);
+        CurrentUserService.requireOwnerOrAdmin(currentUserService.require(auth), plan.getUser());
+        plan.setTitle(details.getTitle());
+        plan.setDescription(details.getDescription());
+        plan.setPlanType(details.getPlanType());
+        plan.setTargetAmount(details.getTargetAmount());
+        plan.setCurrentAmount(details.getCurrentAmount());
+        plan.setMonthlyContribution(details.getMonthlyContribution());
+        plan.setTargetDate(details.getTargetDate());
+        plan.setExpectedReturnRate(details.getExpectedReturnRate());
+        plan.setStatus(details.getStatus());
+        applyDefaults(plan);
+        return financialPlanRepository.save(plan);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @financialPlanRepository.findById(#id).orElse(null)?.user?.email == principal.name")
-    public ResponseEntity<?> deleteFinancialPlan(@PathVariable Long id) {
-        return financialPlanRepository.findById(id)
-                .map(plan -> {
-                    financialPlanRepository.delete(plan);
-                    return ResponseEntity.ok().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> deleteFinancialPlan(@PathVariable Long id, Authentication auth) {
+        FinancialPlan plan = find(id);
+        CurrentUserService.requireOwnerOrAdmin(currentUserService.require(auth), plan.getUser());
+        financialPlanRepository.delete(plan);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/my-plans/count")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Long> getActiveFinancialPlansCount(Principal principal) {
-        User user = userRepository.findByEmail(principal.getName()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
+    private FinancialPlan find(Long id) {
+        return financialPlanRepository.findById(id).orElseThrow(() -> CurrentUserService.notFound("Financial plan"));
+    }
+
+    private static void applyDefaults(FinancialPlan plan) {
+        if (plan.getPlanType() == null) plan.setPlanType(FinancialPlan.PlanType.OTHER);
+        if (plan.getStatus() == null) plan.setStatus(FinancialPlan.PlanStatus.ACTIVE);
+        if (plan.getCurrentAmount() == null) plan.setCurrentAmount(BigDecimal.ZERO);
+        if (plan.getCurrentAmount().compareTo(plan.getTargetAmount()) >= 0
+                && plan.getStatus() == FinancialPlan.PlanStatus.ACTIVE) {
+            plan.setStatus(FinancialPlan.PlanStatus.COMPLETED);
         }
-        Long count = financialPlanRepository.countActiveByUserId(user.getId());
-        return ResponseEntity.ok(count);
     }
 }

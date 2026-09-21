@@ -1,0 +1,8 @@
+target
+data
+uploads
+*.log
+.settings
+.classpath
+.project
+.factorypath

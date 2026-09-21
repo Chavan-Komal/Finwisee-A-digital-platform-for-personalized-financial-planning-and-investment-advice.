@@ -1,6 +1,7 @@
 package com.finwise.backend.userprofile;
 
 import com.finwise.backend.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -52,6 +53,7 @@ public class UserProfile {
     @Column(name = "pan_number")
     private String panNumber;
 
+    @JsonIgnore
     @Column(name = "aadhar_number")
     private String aadharNumber;
 

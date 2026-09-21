@@ -1,0 +1,20 @@
+# Render Blueprint: deploys the Spring Boot API as a Docker web service.
+# In Render: New + -> Blueprint -> pick this repository.
+services:
+  - type: web
+    name: finwisee-backend
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      # Embedded H2 database - the free plan has no persistent disk, so demo data
+      # is re-seeded whenever the service redeploys or restarts.
+      - key: SPRING_PROFILES_ACTIVE
+        value: h2
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://finwisee-demo.netlify.app

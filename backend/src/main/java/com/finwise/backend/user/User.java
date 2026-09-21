@@ -1,5 +1,7 @@
 package com.finwise.backend.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -7,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.Instant;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"email"})
 })
@@ -30,6 +33,7 @@ public class User {
 
     private String phone;
 
+    @JsonIgnore
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 

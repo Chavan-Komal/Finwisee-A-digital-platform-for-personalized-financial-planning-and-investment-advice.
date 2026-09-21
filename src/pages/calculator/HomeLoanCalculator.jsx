@@ -10,6 +10,8 @@ const HomeLoanCalculator = () => {
 
   useEffect(() => {
     calculateEMI();
+    // Only compute the initial EMI on mount; afterwards the user clicks "Calculate"
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatCurrency = (value) => {

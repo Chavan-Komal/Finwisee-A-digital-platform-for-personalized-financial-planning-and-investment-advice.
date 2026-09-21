@@ -1,9 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { dashboardPathFor, useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+  const { cartCount } = useCart();
+  const loggedIn = isAuthenticated();
+
+  const handleLogout = () => {
+    logout();
+    closeMobileMenu();
+    navigate('/home');
+  };
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
@@ -73,14 +84,30 @@ const Header = () => {
         </nav>
 
         {/* Login Button (Desktop) */}
-        <div className="header-login desktop-login d-none d-md-block">
-          <button
-            onClick={() => handleNavigate("/auth/login")}
-            className="login-button"
-          >
-            <i className="fas fa-sign-in-alt"></i>
-            <span>Login</span>
-          </button>
+        <div className="header-login desktop-login d-none d-md-flex align-items-center gap-2">
+          <Link to="/home/cart" className="nav-link position-relative px-2" title="Cart">
+            <i className="fas fa-shopping-cart"></i>
+            {cartCount > 0 && <span className="badge rounded-pill bg-danger ms-1">{cartCount}</span>}
+          </Link>
+          {loggedIn ? (
+            <>
+              <button onClick={() => handleNavigate(dashboardPathFor(user))} className="login-button">
+                <i className="fas fa-th-large"></i>
+                <span>{user?.role === 'ADMIN' ? 'Admin' : 'Dashboard'}</span>
+              </button>
+              <button onClick={handleLogout} className="login-button" title="Logout">
+                <i className="fas fa-sign-out-alt"></i>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => handleNavigate("/auth/login")}
+              className="login-button"
+            >
+              <i className="fas fa-sign-in-alt"></i>
+              <span>Login</span>
+            </button>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -135,13 +162,32 @@ const Header = () => {
               </Link>
             </li>
             <li className="nav-item">
-              <button
-                onClick={() => handleNavigate("/auth/login")}
-                className="login-button mobile-login"
-              >
-                <i className="fas fa-sign-in-alt"></i>
-                <span>Login</span>
-              </button>
+              <Link to="/home/cart" className="nav-link" onClick={closeMobileMenu}>
+                <i className="fas fa-shopping-cart"></i>
+                <span>Cart{cartCount > 0 ? ` (${cartCount})` : ''}</span>
+              </Link>
+            </li>
+            <li className="nav-item">
+              {loggedIn ? (
+                <>
+                  <button onClick={() => handleNavigate(dashboardPathFor(user))} className="login-button mobile-login">
+                    <i className="fas fa-th-large"></i>
+                    <span>My Dashboard</span>
+                  </button>
+                  <button onClick={handleLogout} className="login-button mobile-login mt-2">
+                    <i className="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => handleNavigate("/auth/login")}
+                  className="login-button mobile-login"
+                >
+                  <i className="fas fa-sign-in-alt"></i>
+                  <span>Login</span>
+                </button>
+              )}
             </li>
           </ul>
         </nav>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '../components/Header/Header'
 import Footer from '../components/Footer/Footer'
 import SignupPrompt from '../components/SignupPrompt/SignupPrompt'
@@ -7,13 +7,14 @@ import { useLocation, Outlet } from 'react-router-dom'
 import "../App.css"
 import "./MainLayout.css"
 
+// Pages where we don't want to show the signup prompt
+const excludedPages = ['/auth/login', '/auth/register', '/admin', '/user'];
+
 const MainLayout = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const location = useLocation();
 
-  // Pages where we don't want to show the signup prompt
-  const excludedPages = ['/auth/login', '/auth/register', '/admin', '/user'];
 
   useEffect(() => {
     // Check if user has already seen the popup today
