@@ -1,197 +1,177 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { dashboardPathFor, useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import './Header.css';
+
+const NAV_LINKS = [
+  { to: '/home', label: 'Home', end: true },
+  { to: '/home/e-learning', label: 'E-Learning' },
+  { to: '/home/calculator', label: 'Calculators' },
+  { to: '/home/pricing', label: 'Pricing' },
+  { to: '/home/Gallery', label: 'Gallery' },
+  { to: '/home/aboutus', label: 'About' },
+  { to: '/home/contactus', label: 'Contact' },
+];
 
 const Header = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const accountRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const { cartCount } = useCart();
   const loggedIn = isAuthenticated();
 
+  // Subtle shadow once the page is scrolled
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Close menus on navigation
+  useEffect(() => {
+    setMenuOpen(false);
+    setAccountOpen(false);
+  }, [location.pathname]);
+
+  // Close the account dropdown on an outside click or Escape
+  useEffect(() => {
+    if (!accountOpen) return;
+    const onClick = (e) => {
+      if (accountRef.current && !accountRef.current.contains(e.target)) setAccountOpen(false);
+    };
+    const onKey = (e) => e.key === 'Escape' && setAccountOpen(false);
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [accountOpen]);
+
   const handleLogout = () => {
     logout();
-    closeMobileMenu();
+    setMenuOpen(false);
+    setAccountOpen(false);
     navigate('/home');
   };
 
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
-
-  const handleNavigate = (path) => {
-    navigate(path);
-    closeMobileMenu();
-  };
+  const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'U';
 
   return (
-    <header className="header">
-      <div className="header-container d-flex justify-content-between align-items-center px-4 py-2">
-        {/* Logo */}
-        <div className="header-logo">
-          <Link to="/home" className="logo-link" onClick={closeMobileMenu}>
-            <div className="logo-icon">
-              <i className="fas fa-chart-line"></i>
-            </div> 
-          </Link>
-        </div>
+    <header className={`fwnav ${scrolled ? 'is-scrolled' : ''}`}>
+      <div className="fwnav-inner">
+        <Link to="/home" className="fwnav-brand">
+          <span className="fwnav-brand-mark"><i className="fas fa-chart-line"></i></span>
+          <span className="fwnav-brand-name">Finwisee</span>
+        </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="header-nav desktop-nav mt-2 d-none d-md-block">
-          <ul className="nav-list d-flex">
-<li className="nav-item">
-  <Link to="/home/e-learning" className="nav-link d-flex align-items-center gap-2">
-    <i className="fas fa-graduation-cap"></i>
-    <span className="text-nowrap">E-Learning</span>
-  </Link>
-</li>
-
-<li className="nav-item">
-  <Link to="/home/calculator" className="nav-link d-flex align-items-center gap-2">
-    <i className="fas fa-calculator"></i>
-    <span className="text-nowrap">Trackers & Calculators</span>
-  </Link>
-</li>
-
-<li className="nav-item">
-  <Link to="/home/Gallery" className="nav-link d-flex align-items-center gap-2">
-    <i className="fas fa-images"></i>
-    <span className="text-nowrap">Gallery</span>
-  </Link>
-</li>
-
-<li className="nav-item">
-  <Link to="/home/aboutus" className="nav-link d-flex align-items-center gap-2">
-    <i className="fas fa-info-circle"></i>
-    <span className="text-nowrap">About Us</span>
-  </Link>
-</li>
-
-<li className="nav-item">
-  <Link to="/home/contactus" className="nav-link d-flex align-items-center gap-2">
-    <i className="fas fa-envelope"></i>
-    <span className="text-nowrap">Contact Us</span>
-  </Link>
-</li>
-
-<li className="nav-item">
-  <Link to="/home/pricing" className="nav-link d-flex align-items-center gap-2">
-    <i className="fas fa-tags"></i>
-    <span className="text-nowrap">Pricing</span>
-  </Link>
-</li>
-
-          </ul>
+        <nav className="fwnav-links" aria-label="Main navigation">
+          {NAV_LINKS.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.end}
+              className={({ isActive }) => `fwnav-link ${isActive ? 'active' : ''}`}
+            >
+              {link.label}
+            </NavLink>
+          ))}
         </nav>
 
-        {/* Login Button (Desktop) */}
-        <div className="header-login desktop-login d-none d-md-flex align-items-center gap-2">
-          <Link to="/home/cart" className="nav-link position-relative px-2" title="Cart">
+        <div className="fwnav-actions">
+          <Link to="/home/cart" className="fwnav-icon-btn" aria-label={`Cart (${cartCount} items)`} title="Cart">
             <i className="fas fa-shopping-cart"></i>
-            {cartCount > 0 && <span className="badge rounded-pill bg-danger ms-1">{cartCount}</span>}
+            {cartCount > 0 && <span className="fwnav-cart-count">{cartCount}</span>}
           </Link>
+
+          {loggedIn ? (
+            <div className="fwnav-account" ref={accountRef}>
+              <button
+                className="fwnav-account-btn"
+                onClick={() => setAccountOpen((v) => !v)}
+                aria-expanded={accountOpen}
+                aria-haspopup="menu"
+              >
+                <span className="fwnav-avatar">{initials}</span>
+                <span className="fwnav-account-name">{user?.firstName}</span>
+                <i className={`fas fa-chevron-down ${accountOpen ? 'flip' : ''}`}></i>
+              </button>
+
+              {accountOpen && (
+                <div className="fwnav-menu" role="menu">
+                  <div className="fwnav-menu-head">
+                    <strong>{user?.firstName} {user?.lastName}</strong>
+                    <span>{user?.email}</span>
+                  </div>
+                  <Link to={dashboardPathFor(user)} className="fwnav-menu-item" role="menuitem">
+                    <i className="fas fa-table-columns"></i>
+                    {user?.role === 'ADMIN' ? 'Admin dashboard' : 'My dashboard'}
+                  </Link>
+                  <button className="fwnav-menu-item danger" onClick={handleLogout} role="menuitem">
+                    <i className="fas fa-arrow-right-from-bracket"></i>
+                    Log out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link to="/auth/login" className="fwnav-btn fwnav-btn-ghost">Log in</Link>
+              <Link to="/auth/register" className="fwnav-btn fwnav-btn-primary">Get started</Link>
+            </>
+          )}
+
+          <button
+            className="fwnav-burger"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+          >
+            <i className={`fas ${menuOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
+          </button>
+        </div>
+      </div>
+
+      {/* ---------- Mobile panel ---------- */}
+      <div className={`fwnav-mobile ${menuOpen ? 'open' : ''}`}>
+        <nav className="fwnav-mobile-links">
+          {NAV_LINKS.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.end}
+              className={({ isActive }) => `fwnav-mobile-link ${isActive ? 'active' : ''}`}
+            >
+              {link.label}
+              <i className="fas fa-chevron-right"></i>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="fwnav-mobile-actions">
           {loggedIn ? (
             <>
-              <button onClick={() => handleNavigate(dashboardPathFor(user))} className="login-button">
-                <i className="fas fa-th-large"></i>
-                <span>{user?.role === 'ADMIN' ? 'Admin' : 'Dashboard'}</span>
-              </button>
-              <button onClick={handleLogout} className="login-button" title="Logout">
-                <i className="fas fa-sign-out-alt"></i>
-              </button>
+              <Link to={dashboardPathFor(user)} className="fwnav-btn fwnav-btn-primary">
+                {user?.role === 'ADMIN' ? 'Admin dashboard' : 'My dashboard'}
+              </Link>
+              <button className="fwnav-btn fwnav-btn-ghost" onClick={handleLogout}>Log out</button>
             </>
           ) : (
-            <button
-              onClick={() => handleNavigate("/auth/login")}
-              className="login-button"
-            >
-              <i className="fas fa-sign-in-alt"></i>
-              <span>Login</span>
-            </button>
+            <>
+              <Link to="/auth/register" className="fwnav-btn fwnav-btn-primary">Get started</Link>
+              <Link to="/auth/login" className="fwnav-btn fwnav-btn-ghost">Log in</Link>
+            </>
           )}
         </div>
-
-        {/* Mobile Menu Toggle */}
-       <button
-  className="mobile-menu-toggle d-block d-md-none"
-  onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-  aria-label="Toggle mobile menu"
-  aria-expanded={isMobileMenuOpen}
->
-  
-   <i className="fas fa-bars fa-lg"></i>
-  
-</button>
-
-        {/* Mobile Navigation */}
-        <nav className={`header-nav mobile-nav ${isMobileMenuOpen ? 'open' : 'hidden'}`}>
-          <ul className="nav-list">
-            <li className="nav-item">
-              <Link to="/home/e-learning" className="nav-link" onClick={closeMobileMenu}>
-                <i className="fas fa-graduation-cap"></i>
-                <span>E-Learning</span>
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/home/calculator" className="nav-link" onClick={closeMobileMenu}>
-                <i className="fas fa-calculator"></i>
-                <span>Trackers & Calculators</span>
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/home/Gallery" className="nav-link" onClick={closeMobileMenu}>
-                <i className="fas fa-images"></i>
-                <span>Gallery</span>
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/home/aboutus" className="nav-link" onClick={closeMobileMenu}>
-                <i className="fas fa-info-circle"></i>
-                <span>About Us</span>
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/home/contactus" className="nav-link" onClick={closeMobileMenu}>
-                <i className="fas fa-envelope"></i>
-                <span>Contact Us</span>
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/home/pricing" className="nav-link" onClick={closeMobileMenu}>
-                <i className="fas fa-tags"></i>
-                <span>Pricing</span>
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/home/cart" className="nav-link" onClick={closeMobileMenu}>
-                <i className="fas fa-shopping-cart"></i>
-                <span>Cart{cartCount > 0 ? ` (${cartCount})` : ''}</span>
-              </Link>
-            </li>
-            <li className="nav-item">
-              {loggedIn ? (
-                <>
-                  <button onClick={() => handleNavigate(dashboardPathFor(user))} className="login-button mobile-login">
-                    <i className="fas fa-th-large"></i>
-                    <span>My Dashboard</span>
-                  </button>
-                  <button onClick={handleLogout} className="login-button mobile-login mt-2">
-                    <i className="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => handleNavigate("/auth/login")}
-                  className="login-button mobile-login"
-                >
-                  <i className="fas fa-sign-in-alt"></i>
-                  <span>Login</span>
-                </button>
-              )}
-            </li>
-          </ul>
-        </nav>
       </div>
+
+      {menuOpen && <div className="fwnav-backdrop" onClick={() => setMenuOpen(false)} />}
     </header>
   );
 };
