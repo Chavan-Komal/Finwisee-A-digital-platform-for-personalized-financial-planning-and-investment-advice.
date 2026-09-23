@@ -1,45 +1,13 @@
-import { useState, useEffect } from 'react'
 import Header from '../components/Header/Header'
 import Footer from '../components/Footer/Footer'
-import SignupPrompt from '../components/SignupPrompt/SignupPrompt'
-import { useAuth } from '../context/AuthContext'
-import { useLocation, Outlet } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import "../App.css"
 import "./MainLayout.css"
 
-// Pages where we don't want to show the signup prompt
-const excludedPages = ['/auth/login', '/auth/register', '/admin', '/user'];
-
+// The timed sign-up popup was removed: it covered the page five seconds after
+// load. Sign-up is offered by the header, the hero and the closing CTA instead.
+// The SignupPrompt component is still in components/SignupPrompt if it's needed.
 const MainLayout = () => {
-  const { isAuthenticated } = useAuth();
-  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
-  const location = useLocation();
-
-
-  useEffect(() => {
-    // Check if user has already seen the popup today
-    const lastPopupDate = localStorage.getItem('lastSignupPopup');
-    const today = new Date().toDateString();
-    
-    // Show signup prompt for unregistered users after 5 seconds
-    // Only if they're not on login/register pages, not already authenticated, and haven't seen it today
-    if (!excludedPages.includes(location.pathname) && 
-        !isAuthenticated() && 
-        lastPopupDate !== today) {
-      const timer = setTimeout(() => {
-        setShowSignupPrompt(true);
-        // Mark that user has seen the popup today
-        localStorage.setItem('lastSignupPopup', today);
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [location.pathname, isAuthenticated]);
-
-  const handleCloseSignupPrompt = () => {
-    setShowSignupPrompt(false);
-  };
-
   return (
     <div className="main-layout">
       <Header />
@@ -47,13 +15,6 @@ const MainLayout = () => {
         <Outlet />
       </main>
       <Footer />
-      
-      {showSignupPrompt && (
-        <SignupPrompt 
-          show={showSignupPrompt} 
-          onClose={handleCloseSignupPrompt}
-        />
-      )}
     </div>
   )
 }
